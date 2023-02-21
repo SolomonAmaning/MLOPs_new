@@ -1,4 +1,4 @@
-from feature_engine.encoding import OrdinalEncoder, RareLabelEncoder
+from feature_engine.encoding import OneHotEncoder, RareLabelEncoder
 from feature_engine.imputation import (
     AddMissingIndicator,
     CategoricalImputer,
@@ -7,12 +7,12 @@ from feature_engine.imputation import (
 from feature_engine.selection import DropFeatures
 from feature_engine.transformation import LogTransformer
 from feature_engine.wrappers import SklearnTransformerWrapper
-from sklearn.linear_model import Lasso
+from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import Binarizer, MinMaxScaler
+from sklearn.preprocessing import Binarizer, StandardScaler
 
-from regression_model.config.core import config
-from regression_model.processing import features as pp
+from classification_model.config.core import config
+from classification_model.processing import features as pp
 
 price_pipe = Pipeline(
     [
@@ -52,8 +52,7 @@ price_pipe = Pipeline(
                 variables=config.model_config.temporal_vars,
                 reference_variable=config.model_config.ref_var,
             ),
-        ),
-        ("drop_features", DropFeatures(features_to_drop=[config.model_config.ref_var])),
+        
         # ==== VARIABLE TRANSFORMATION =====
         ("log", LogTransformer(variables=config.model_config.numericals_log_vars)),
         (
@@ -63,54 +62,22 @@ price_pipe = Pipeline(
                 variables=config.model_config.binarize_vars,
             ),
         ),
-        # === mappers ===
-        (
-            "mapper_qual",
-            pp.Mapper(
-                variables=config.model_config.qual_vars,
-                mappings=config.model_config.qual_mappings,
-            ),
-        ),
-        (
-            "mapper_exposure",
-            pp.Mapper(
-                variables=config.model_config.exposure_vars,
-                mappings=config.model_config.exposure_mappings,
-            ),
-        ),
-        (
-            "mapper_finish",
-            pp.Mapper(
-                variables=config.model_config.finish_vars,
-                mappings=config.model_config.finish_mappings,
-            ),
-        ),
-        (
-            "mapper_garage",
-            pp.Mapper(
-                variables=config.model_config.garage_vars,
-                mappings=config.model_config.garage_mappings,
-            ),
-        ),
+        
         # == CATEGORICAL ENCODING
-        (
-            "rare_label_encoder",
-            RareLabelEncoder(
-                tol=0.01, n_categories=1, variables=config.model_config.categorical_vars
-            ),
+       
         ),
         # encode categorical variables using the target mean
         (
             "categorical_encoder",
-            OrdinalEncoder(
-                encoding_method="ordered",
+            OneHotEncoder(
+                encoding_method="binary",
                 variables=config.model_config.categorical_vars,
             ),
         ),
-        ("scaler", MinMaxScaler()),
+        ("scaler", StandardScaler()),
         (
-            "Lasso",
-            Lasso(
+            "Logistic",
+            LogisticRegression(
                 alpha=config.model_config.alpha,
                 random_state=config.model_config.random_state,
             ),

@@ -1,3 +1,32 @@
+Skip to content
+Search or jump to…
+Pull requests
+Issues
+Codespaces
+Marketplace
+Explore
+ 
+@SolomonAmaning 
+avigoen
+/
+ML_Ops_Sessions
+Public
+Fork your own copy of avigoen/ML_Ops_Sessions
+Code
+Issues
+Pull requests
+Actions
+Projects
+Security
+Insights
+ML_Ops_Sessions/Assignments/titanic-assignment/Assignment2/classification_model/processing/data_manager.py /
+@avigoen
+avigoen Assignment 2: Completion
+Latest commit 1aad895 10 hours ago
+ History
+ 1 contributor
+53 lines (40 sloc)  1.74 KB
+
 import typing as t
 from pathlib import Path
 
@@ -5,17 +34,15 @@ import joblib
 import pandas as pd
 from sklearn.pipeline import Pipeline
 
-from regression_model import __version__ as _version
-from regression_model.config.core import DATASET_DIR, TRAINED_MODEL_DIR, config
+from classification_model import __version__ as _version
+from classification_model.config.core import DATASET_DIR, TRAINED_MODEL_DIR, config
+from classification_model.processing.cleaning import clean_dataset
 
 
 def load_dataset(*, file_name: str) -> pd.DataFrame:
     dataframe = pd.read_csv(Path(f"{DATASET_DIR}/{file_name}"))
-    dataframe["MSSubClass"] = dataframe["MSSubClass"].astype("O")
-
-    # rename variables beginning with numbers to avoid syntax errors later
-    transformed = dataframe.rename(columns=config.model_config.variables_to_rename)
-    return transformed
+    dataframe = clean_dataset(dataframe)
+    return dataframe
 
 
 def save_pipeline(*, pipeline_to_persist: Pipeline) -> None:
